@@ -10,10 +10,6 @@ segment readable executable
 
 start:
 
-	mov	[con_handle],1
-	mov	esi,_logo
-	call	display_string
-
 	mov	[command_line],esp
 	mov	ecx,[esp]
 	lea	ebx,[esp+4+ecx*4+4]
@@ -22,17 +18,6 @@ start:
 	jc	information
 
 	call	init_memory
-
-	mov	esi,_memory_prefix
-	call	display_string
-	mov	eax,[memory_end]
-	sub	eax,[memory_start]
-	add	eax,[additional_memory_end]
-	sub	eax,[additional_memory]
-	shr	eax,10
-	call	display_number
-	mov	esi,_memory_suffix
-	call	display_string
 
 	mov	eax,78
 	mov	ebx,buffer
@@ -55,11 +40,6 @@ start:
 	call	formatter
 
 	call	display_user_messages
-	movzx	eax,[current_pass]
-	inc	eax
-	call	display_number
-	mov	esi,_passes_suffix
-	call	display_string
 	mov	eax,78
 	mov	ebx,buffer
 	xor	ecx,ecx
@@ -79,7 +59,7 @@ start:
 	mov	ebx,100
 	div	ebx
 	or	eax,eax
-	jz	display_bytes_count
+	jz	end_program
 	xor	edx,edx
 	mov	ebx,10
 	div	ebx
@@ -89,13 +69,7 @@ start:
 	call	display_character
 	pop	eax
 	call	display_number
-	mov	esi,_seconds_suffix
-	call	display_string
-      display_bytes_count:
-	mov	eax,[written_size]
-	call	display_number
-	mov	esi,_bytes_suffix
-	call	display_string
+      end_program:
 	xor	al,al
 	jmp	exit_program
 
@@ -286,24 +260,17 @@ get_params:
 
 include 'system.inc'
 
-include '..\version.inc'
+include "../version.inc"
 
 _copyright db 'Copyright (c) 1999-2022, Tomasz Grysztar',0xA,0
 
-_logo db 'flat assembler  version ',VERSION_STRING,0
-_usage db 0xA
-       db 'usage: fasm <source> [output]',0xA
+_usage db 'usage: fasm <source> [output]',0xA
        db 'optional settings:',0xA
        db ' -m <limit>         set the limit in kilobytes for the available memory',0xA
        db ' -p <limit>         set the maximum allowed number of passes',0xA
        db ' -d <name>=<value>  define symbolic variable',0xA
        db ' -s <file>          dump symbolic information for debugging',0xA
        db 0
-_memory_prefix db '  (',0
-_memory_suffix db ' kilobytes memory)',0xA,0
-_passes_suffix db ' passes, ',0
-_seconds_suffix db ' seconds, ',0
-_bytes_suffix db ' bytes.',0xA,0
 
 include '..\errors.inc'
 include '..\symbdump.inc'
